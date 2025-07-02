@@ -10,7 +10,7 @@ def fetch_wikipedia_extract(title: str) -> str:
     data = resp.json()
     return data.get("extract", "")
 
-
+  
 def fetch_wikivoyage_extract(title: str) -> str:
     """Return introductory extract for a Wikivoyage page title."""
     params = {

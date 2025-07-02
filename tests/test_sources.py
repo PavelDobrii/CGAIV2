@@ -31,7 +31,7 @@ def test_fetch_wikipedia_extract(monkeypatch):
     assert 'Berlin' in captured['url']
     assert result == 'Info about place'
 
-
+    
 def test_fetch_wikivoyage_extract(monkeypatch):
     captured = {}
 
