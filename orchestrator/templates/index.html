@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Story Generator</title>
+</head>
+<body>
+    <h1>Story Generator</h1>
+    <form id="storyForm">
+        <label>
+            Prompt:
+            <input type="text" id="prompt" required>
+        </label>
+        <br>
+        <label>
+            Location:
+            <input type="text" id="location">
+        </label>
+        <br>
+        <label>
+            Language:
+            <input type="text" id="language" value="English" required>
+        </label>
+        <br>
+        <label>
+            Style:
+            <input type="text" id="style" value="fun" required>
+        </label>
+        <br>
+        <label>
+            TTS Engine:
+            <select id="tts_engine">
+                <option value="opentts">OpenTTS</option>
+                <option value="kokoro">Kokoro</option>
+            </select>
+        </label>
+        <br>
+        <button type="submit">Generate</button>
+    </form>
+
+    <div id="result" style="display: none;">
+        <pre id="storyText"></pre>
+        <audio id="storyAudio" controls></audio>
+    </div>
+
+    <script>
+    document.getElementById('storyForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const payload = {
+            prompt: document.getElementById('prompt').value,
+            language: document.getElementById('language').value,
+            style: document.getElementById('style').value,
+            location: document.getElementById('location').value || null,
+            tts_engine: document.getElementById('tts_engine').value
+        };
+        const resp = await fetch('/story', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+            alert('Error: ' + await resp.text());
+            return;
+        }
+        const data = await resp.json();
+        const outputPrefix = '/outputs/';
+        const mdPath = data.markdown.substring(data.markdown.indexOf('outputs/'));
+        const audioPath = data.audio.substring(data.audio.indexOf('outputs/'));
+        const textResp = await fetch('/' + mdPath);
+        document.getElementById('storyText').textContent = await textResp.text();
+        document.getElementById('storyAudio').src = '/' + audioPath;
+        document.getElementById('result').style.display = 'block';
+    });
+    </script>
+</body>
+</html>

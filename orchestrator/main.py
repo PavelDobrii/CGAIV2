@@ -8,15 +8,21 @@ from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
     from fastapi import FastAPI, HTTPException
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     FastAPI = None
     HTTPException = Exception
+    FileResponse = None
+    StaticFiles = None
 
-    class BaseModel:  # pragma: no cover - minimal stub
-        pass
+class BaseModel:  # pragma: no cover - minimal stub
+    pass
 
-TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "story_prompt.txt"
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
+OUTPUTS_DIR = Path(__file__).resolve().parent / "outputs"
+TEMPLATE_PATH = TEMPLATE_DIR / "story_prompt.txt"
 
 def slugify(value: str) -> str:
     value = value.lower()
@@ -131,6 +137,11 @@ class StoryRequest(BaseModel):
 
 if FastAPI is not None:
     app = FastAPI()
+    app.mount("/outputs", StaticFiles(directory=OUTPUTS_DIR), name="outputs")
+
+    @app.get("/")
+    def read_index():
+        return FileResponse(TEMPLATE_DIR / "index.html")
 
     @app.post("/story")
     def create_story(request: StoryRequest):

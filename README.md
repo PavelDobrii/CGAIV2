@@ -35,7 +35,8 @@ uvicorn orchestrator.main:app
 ```
 
 The server listens on `http://127.0.0.1:8000` by default. Use the `/story`
-endpoint described below to generate stories.
+endpoint described below to generate stories. Open `http://127.0.0.1:8000/` in a
+browser to use a simple HTML interface.
 
 ### CLI
 The same functionality is available from the command line. Provide the prompt,
