@@ -34,6 +34,7 @@ def run_story(
     style: str,
     llm_url: str,
     tts_url: str,
+    tts_engine: str = "opentts",
     output_base_dir: Path | str | None = None,
 ):
     template = load_template()
@@ -54,8 +55,13 @@ def run_story(
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(story_text)
 
+    if tts_engine == "kokoro":
+        endpoint = f"{tts_url.rstrip('/')}/api/kokoro"
+    else:
+        endpoint = f"{tts_url.rstrip('/')}/api/tts"
+
     tts_response = requests.post(
-        f"{tts_url.rstrip('/')}/api/tts",
+        endpoint,
         json={"text": story_text, "speaker": language},
     )
     tts_response.raise_for_status()
@@ -80,6 +86,12 @@ def main():
         default=os.environ.get("TTS_SERVER_URL", "http://localhost:5500"),
         help="Base URL of TTS server",
     )
+    parser.add_argument(
+        "--tts-engine",
+        choices=["opentts", "kokoro"],
+        default=os.environ.get("TTS_ENGINE", "opentts"),
+        help="Text-to-speech engine to use",
+    )
     args = parser.parse_args()
 
     md_path, audio_path = run_story(
@@ -88,6 +100,7 @@ def main():
         style=args.style,
         llm_url=args.llm_url,
         tts_url=args.tts_url,
+        tts_engine=args.tts_engine,
     )
 
     print(f"Markdown saved to {md_path}")
@@ -98,6 +111,7 @@ class StoryRequest(BaseModel):
     prompt: str
     language: str
     style: str
+    tts_engine: str = "opentts"
 
 
 if FastAPI is not None:
@@ -107,6 +121,7 @@ if FastAPI is not None:
     def create_story(request: StoryRequest):
         llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8080")
         tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
+        tts_engine = os.environ.get("TTS_ENGINE", request.tts_engine)
         try:
             md_path, audio_path = run_story(
                 prompt=request.prompt,
@@ -114,6 +129,7 @@ if FastAPI is not None:
                 style=request.style,
                 llm_url=llm_url,
                 tts_url=tts_url,
+                tts_engine=tts_engine,
             )
         except requests.RequestException as exc:
             raise HTTPException(status_code=502, detail=str(exc))

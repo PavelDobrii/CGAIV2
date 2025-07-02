@@ -15,3 +15,5 @@ voices:
     description: "English male voice using Coqui model 2"
   - id: bark-male
     description: "English male voice using Suno Bark"
+  - id: kokoro
+    description: "Japanese voice provided by Kokoro TTS"
