@@ -1,6 +1,7 @@
 # CGAIV2
 
-This project demonstrates a simple orchestration of a text generation model and text-to-speech services. The provided `docker-compose.yml` launches three containers: HuggingFace TGI for language generation, OpenTTS for speech synthesis, and Kokoro for Japanese voices. Outputs are stored under `orchestrator/outputs` so that generated text or audio files persist on the host.
+This project demonstrates a simple orchestration of a text generation model and text-to-speech service. The provided `docker-compose.yml` launches two containers: HuggingFace TGI for language generation and OpenTTS for speech synthesis. Outputs are stored under `orchestrator/outputs` so that generated text or audio files persist on the host. The tool can optionally fetch background information about a location from Wikipedia before generating text.
+
 
 ## Setup
 1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/).
@@ -42,7 +43,7 @@ The same functionality is available from the command line. Provide the prompt,
 language and style as positional arguments:
 
 ```bash
-python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500 --tts-engine opentts
+python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500 --tts-engine opentts --location "Paris"
 ```
 
 Each run creates a folder under `orchestrator/outputs/{slug}/` containing
@@ -112,7 +113,7 @@ curl -X POST http://localhost:5500/api/tts \
   - **Method**: `POST`
   - **Example payload**:
     ```json
-    {"prompt": "A brave knight", "language": "en", "style": "epic"}
+    {"prompt": "A brave knight", "language": "en", "style": "epic", "location": "Paris"}
     ```
   - Runs the full workflow and saves the results to `orchestrator/outputs/{slug}/`.
 
