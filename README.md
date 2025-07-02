@@ -119,6 +119,7 @@ curl -X POST http://localhost:5500/api/tts \
     ```
   - Runs the full workflow and saves the results to `orchestrator/outputs/{slug}/`.
     When `location` is provided, the orchestrator fetches descriptions from Wikipedia and Wikivoyage.
+    The response JSON now includes the generated text and a base64-encoded copy of the audio in addition to the file paths.
 
   Example using the `tts_engine` parameter:
 
@@ -130,13 +131,15 @@ curl -X POST http://localhost:5500/api/tts \
 
 ## Example Results
 A simple workflow might send a prompt to TGI and feed the returned text into a TTS engine such as OpenTTS or Kokoro. The resulting audio file will appear in `orchestrator/outputs`.
-When the `/story` endpoint is used, the service responds with a slug that matches a directory under `orchestrator/outputs/{slug}/` containing `story.md` and `story.mp3`.
+When the `/story` endpoint is used, the service responds with JSON similar to:
 
-Example console output:
-
-```
-Markdown saved to orchestrator/outputs/my-story/story.md
-Audio saved to orchestrator/outputs/my-story/story.mp3
+```json
+{
+  "markdown": "orchestrator/outputs/my-story/story.md",
+  "audio": "orchestrator/outputs/my-story/story.mp3",
+  "text": "Once upon a time...",
+  "audio_base64": "<base64 data>"
+}
 ```
 
 ## Directory Structure
