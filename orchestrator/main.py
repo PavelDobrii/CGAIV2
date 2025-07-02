@@ -28,7 +28,14 @@ def load_template() -> str:
         return f.read()
 
 
-def run_story(prompt: str, language: str, style: str, llm_url: str, tts_url: str):
+def run_story(
+    prompt: str,
+    language: str,
+    style: str,
+    llm_url: str,
+    tts_url: str,
+    output_base_dir: Path | str | None = None,
+):
     template = load_template()
     formatted_prompt = template.format(prompt=prompt, language=language, style=style)
 
@@ -39,7 +46,8 @@ def run_story(prompt: str, language: str, style: str, llm_url: str, tts_url: str
     story_text = llm_response.json().get("story") or llm_response.text
 
     slug = slugify(prompt)
-    output_dir = Path.cwd() / "outputs" / slug
+    base_dir = Path(output_base_dir) if output_base_dir is not None else Path.cwd()
+    output_dir = base_dir / "outputs" / slug
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / "story.md"

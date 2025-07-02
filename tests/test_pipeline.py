@@ -1,7 +1,6 @@
 import json
-import os
+import importlib
 import re
-import subprocess
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -105,21 +104,24 @@ def post(url, json=None):
     (tmp_path / "requests.py").write_text(requests_stub)
 
     repo_root = Path(__file__).resolve().parents[1]
+    sys.modules.pop("requests", None)
+    sys.path.insert(0, str(repo_root))
+    sys.path.insert(0, str(tmp_path))
+    try:
+        main = importlib.import_module("orchestrator.main")
+        importlib.reload(main)
+        main.run_story(
+            prompt=prompt,
+            language=language,
+            style="fun",
+            llm_url=llm_url,
+            tts_url=tts_url,
+            output_base_dir=tmp_path,
+        )
+    finally:
+        sys.path.remove(str(tmp_path))
+        sys.path.remove(str(repo_root))
 
-    cmd = [
-        sys.executable,
-        "-m",
-        "orchestrator.main",
-        prompt,
-        language,
-        "fun",
-        "--llm-url",
-        llm_url,
-        "--tts-url",
-        tts_url,
-    ]
-    env = {**os.environ, "PYTHONPATH": f"{repo_root}:{tmp_path}"}
-    subprocess.run(cmd, check=True, cwd=tmp_path, env=env)
     return tmp_path / "outputs" / _slugify(prompt)
 
 
