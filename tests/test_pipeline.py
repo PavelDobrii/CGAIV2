@@ -46,7 +46,7 @@ def tts_server():
         def do_POST(self):
             length = int(self.headers.get("Content-Length", 0))
             data = json.loads(self.rfile.read(length))
-            requests.append(data)
+            requests.append({"path": self.path, "body": data})
             self.send_response(200)
             self.send_header("Content-Type", "audio/mpeg")
             self.end_headers()
@@ -68,7 +68,14 @@ def _slugify(value: str) -> str:
     return value or "output"
 
 
-def _run_pipeline(tmp_path: Path, prompt: str, language: str, llm_url: str, tts_url: str) -> Path:
+def _run_pipeline(
+    tmp_path: Path,
+    prompt: str,
+    language: str,
+    llm_url: str,
+    tts_url: str,
+    tts_engine: str = "opentts",
+) -> Path:
     requests_stub = '''\
 import json as _json
 from urllib import request as _request
@@ -116,6 +123,7 @@ def post(url, json=None):
             style="fun",
             llm_url=llm_url,
             tts_url=tts_url,
+            tts_engine=tts_engine,
             output_base_dir=tmp_path,
         )
     finally:
@@ -134,7 +142,8 @@ def test_pipeline(tmp_path, llm_server, tts_server):
         out_dir = _run_pipeline(tmp_path, f"Prompt {lang}", lang, llm_server, tts_url)
         output_dirs.append(out_dir)
 
-    assert [r["speaker"] for r in requests_data] == languages
+    assert [r["body"]["speaker"] for r in requests_data] == languages
+    assert all(r["path"] == "/api/tts" for r in requests_data)
 
     for dir_ in output_dirs:
         md = dir_ / "story.md"
@@ -143,3 +152,21 @@ def test_pipeline(tmp_path, llm_server, tts_server):
         assert mp3.exists()
         assert md.read_text(encoding="utf-8") == "This is a test story."
         assert mp3.read_bytes() == b"TESTMP3"
+
+
+def test_pipeline_kokoro(tmp_path, llm_server, tts_server):
+    tts_url, requests_data = tts_server
+    out_dir = _run_pipeline(
+        tmp_path,
+        "Prompt Kokoro",
+        "Japanese",
+        llm_server,
+        tts_url,
+        tts_engine="kokoro",
+    )
+
+    md = out_dir / "story.md"
+    mp3 = out_dir / "story.mp3"
+    assert md.exists()
+    assert mp3.exists()
+    assert requests_data[0]["path"] == "/api/kokoro"

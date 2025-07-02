@@ -42,7 +42,7 @@ The same functionality is available from the command line. Provide the prompt,
 language and style as positional arguments:
 
 ```bash
-python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500
+python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500 --tts-engine opentts
 ```
 
 Each run creates a folder under `orchestrator/outputs/{slug}/` containing
@@ -71,7 +71,9 @@ Each run creates a folder under `orchestrator/outputs/{slug}/` containing
   basic `coqui` and `bark` voices, you can select gender-specific options such
   as `coqui-female-1`, `coqui-female-2`, `bark-female`, `coqui-male-1`,
   `coqui-male-2`, and `bark-male`. Choose one of these IDs by passing it as the
-  `speaker` value when calling the API.
+  `speaker` value when calling the API. The orchestrator also supports a
+  separate Kokoro engine by passing `--tts-engine kokoro` (or `tts_engine` in the
+  API), which targets the `/api/kokoro` endpoint.
 
 #### Available Voices
 The following voice IDs are defined in `services/tts_server/voices.yml`.
@@ -83,6 +85,7 @@ The following voice IDs are defined in `services/tts_server/voices.yml`.
 **Male**
 
 - `bark` – English voice provided by Suno Bark
+- `kokoro` – Japanese voice provided by Kokoro TTS
 
 Example using the `bark` voice:
 
