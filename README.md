@@ -44,7 +44,7 @@ This project demonstrates a simple orchestration of a text generation model and 
 
 ### Orchestrator
 - **`/generate_story`**
-  - **URL**: `http://localhost:8000/generate_story`
+  - **URL**: `http://localhost:8080/generate_story`
   - **Method**: `POST`
   - **Example payload**:
     ```json
@@ -52,7 +52,7 @@ This project demonstrates a simple orchestration of a text generation model and 
     ```
   - Returns JSON containing the generated story text.
 - **`/speak`**
-  - **URL**: `http://localhost:50021/speak`
+  - **URL**: `http://localhost:5500/speak`
   - **Method**: `POST`
   - **Example payload**:
     ```json
@@ -60,7 +60,7 @@ This project demonstrates a simple orchestration of a text generation model and 
     ```
   - Returns the audio bytes of the spoken text.
 - **`/story`**
-  - **URL**: `http://localhost:8000/story`
+  - **URL**: `http://localhost:8080/story`
   - **Method**: `POST`
   - **Example payload**:
     ```json

@@ -86,8 +86,8 @@ app = FastAPI()
 
 @app.post("/story")
 def create_story(request: StoryRequest):
-    llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8000")
-    tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:50021")
+    llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8080")
+    tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
     try:
         md_path, audio_path = run_story(
             prompt=request.prompt,

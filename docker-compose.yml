@@ -3,6 +3,7 @@ version: '3.8'
 services:
   llm:
     image: huggingface/text-generation-inference:latest
+    # Exposes the LLM server on http://localhost:8080
     ports:
       - "8080:80"
     volumes:
@@ -19,6 +20,7 @@ services:
 
   tts:
     image: synesthesiam/opentts:latest
+    # Exposes the TTS server on http://localhost:5500
     ports:
       - "5500:5500"
     volumes:
