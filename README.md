@@ -129,6 +129,25 @@ curl -X POST http://localhost:5500/api/tts \
        -d '{"prompt": "A brave knight", "language": "en", "style": "epic", "tts_engine": "kokoro"}'
   ```
 
+
+### Authentication
+
+Before generating a story you must first obtain a token using the `/login` endpoint:
+
+```bash
+curl -X POST http://localhost:8000/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "password"}'
+```
+
+The response JSON includes a `token` value. Pass this token in the `X-Token` header when calling `/story`:
+
+```bash
+curl -X POST http://localhost:8000/story \
+     -H "Content-Type: application/json" \
+     -H "X-Token: <token-from-login>" \
+     -d '{"prompt": "A brave knight", "language": "en", "style": "epic"}'
+```
 ## Example Results
 A simple workflow might send a prompt to TGI and feed the returned text into a TTS engine such as OpenTTS or Kokoro. The resulting audio file will appear in `orchestrator/outputs`.
 When the `/story` endpoint is used, the service responds with JSON similar to:
