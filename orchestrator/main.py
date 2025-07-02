@@ -17,10 +17,12 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency
     Header = lambda *a, **k: None  # type: ignore[misc]
     Depends = lambda x: None  # type: ignore[misc]
 
-    class BaseModel:  # pragma: no cover - minimal stub
-        pass
+class BaseModel:  # pragma: no cover - minimal stub
+    pass
 
-TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "story_prompt.txt"
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
+OUTPUTS_DIR = Path(__file__).resolve().parent / "outputs"
+TEMPLATE_PATH = TEMPLATE_DIR / "story_prompt.txt"
 
 def slugify(value: str) -> str:
     value = value.lower()
@@ -161,6 +163,11 @@ def require_token(x_token: str = Header(..., alias="X-Token")) -> str:  # pragma
 
 if FastAPI is not None:
     app = FastAPI()
+    app.mount("/outputs", StaticFiles(directory=OUTPUTS_DIR), name="outputs")
+
+    @app.get("/")
+    def read_index():
+        return FileResponse(TEMPLATE_DIR / "index.html")
 
     @app.post("/login")
     def login(request: LoginRequest):
