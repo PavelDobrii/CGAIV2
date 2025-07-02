@@ -67,8 +67,11 @@ Each run creates a folder under `orchestrator/outputs/{slug}/` containing
   ```
   The service returns an audio file containing the spoken text.
   Available voices are defined in `services/tts_server/voices.yml`. This
-  repository includes voices for Coqui TTS and Suno Bark. Select the desired
-  voice by passing its name as the `speaker` value when calling the API.
+  repository includes voices for Coqui TTS and Suno Bark. In addition to the
+  basic `coqui` and `bark` voices, you can select gender-specific options such
+  as `coqui-female-1`, `coqui-female-2`, `bark-female`, `coqui-male-1`,
+  `coqui-male-2`, and `bark-male`. Choose one of these IDs by passing it as the
+  `speaker` value when calling the API.
 
 ### Orchestrator
 - **`/story`**
