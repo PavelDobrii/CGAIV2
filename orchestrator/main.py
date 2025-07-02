@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 import requests
+from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
     from fastapi import FastAPI, HTTPException
@@ -35,9 +36,16 @@ def run_story(
     llm_url: str,
     tts_url: str,
     tts_engine: str = "opentts",
+    location: str | None = None,
     output_base_dir: Path | str | None = None,
 ):
     template = load_template()
+    if location:
+        wiki = fetch_wikipedia_extract(location)
+        voyage = fetch_wikivoyage_extract(location)
+        info_parts = [wiki, voyage]
+        info = "\n\n".join(p for p in info_parts if p)
+        prompt = f"{prompt}\n\n{info}" if info else prompt
     formatted_prompt = template.format(prompt=prompt, language=language, style=style)
 
     llm_response = requests.post(
@@ -77,6 +85,10 @@ def main():
     parser.add_argument("language", help="Language for the story")
     parser.add_argument("style", help="Story style")
     parser.add_argument(
+        "--location",
+        help="Location to fetch context from using open data",
+    )
+    parser.add_argument(
         "--llm-url",
         default=os.environ.get("LLM_SERVER_URL", "http://localhost:8080"),
         help="Base URL of LLM server",
@@ -101,6 +113,7 @@ def main():
         llm_url=args.llm_url,
         tts_url=args.tts_url,
         tts_engine=args.tts_engine,
+        location=args.location,
     )
 
     print(f"Markdown saved to {md_path}")
@@ -112,6 +125,7 @@ class StoryRequest(BaseModel):
     language: str
     style: str
     tts_engine: str = "opentts"
+    location: str | None = None
 
 
 if FastAPI is not None:
@@ -130,6 +144,7 @@ if FastAPI is not None:
                 llm_url=llm_url,
                 tts_url=tts_url,
                 tts_engine=tts_engine,
+                location=request.location,
             )
         except requests.RequestException as exc:
             raise HTTPException(status_code=502, detail=str(exc))
