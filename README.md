@@ -86,16 +86,17 @@ To use the Kokoro container instead of OpenTTS, pass `--tts-engine kokoro` and s
   ```
   Returns a spoken Japanese audio file.
 #### Available Voices
-The following voice IDs are defined in `services/tts_server/voices.yml`.
+The following voice IDs are defined in `services/tts_server/voices.yml`:
 
-**Female**
-
-- `coqui` – English voice provided by Coqui TTS
-
-**Male**
-
-- `bark` – English voice provided by Suno Bark
-- `kokoro` – Japanese voice provided by Kokoro TTS
+- `coqui`
+- `bark`
+- `coqui-female-1`
+- `coqui-female-2`
+- `bark-female`
+- `coqui-male-1`
+- `coqui-male-2`
+- `bark-male`
+- `kokoro`
 
 Example using the `bark` voice:
 
@@ -113,10 +114,18 @@ curl -X POST http://localhost:5500/api/tts \
   - **Method**: `POST`
   - **Example payload**:
     ```json
-    {"prompt": "A brave knight", "language": "en", "style": "epic", "location": "Paris"}
+    {"prompt": "A brave knight", "language": "en", "style": "epic", "tts_engine": "kokoro", "location": "Paris"}
     ```
   - Runs the full workflow and saves the results to `orchestrator/outputs/{slug}/`.
     When `location` is provided, the orchestrator fetches descriptions from Wikipedia and Wikivoyage.
+
+  Example using the `tts_engine` parameter:
+
+  ```bash
+  curl -X POST http://localhost:8000/story \
+       -H "Content-Type: application/json" \
+       -d '{"prompt": "A brave knight", "language": "en", "style": "epic", "tts_engine": "kokoro"}'
+  ```
 
 ## Example Results
 A simple workflow might send a prompt to TGI and feed the returned text into a TTS engine such as OpenTTS or Kokoro. The resulting audio file will appear in `orchestrator/outputs`.
