@@ -134,4 +134,6 @@ pytest
 The suite spins up mocked HTTP servers to verify story and audio generation.
 
 ## License
-This project is distributed for demonstration purposes and does not include any model weights.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details. This
+project is provided for demonstration purposes and does not include any model
+weights.
