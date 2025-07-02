@@ -29,3 +29,11 @@ services:
     environment:
       - VOICE_CONFIG=/config/voices.yml
 
+  kokoro:
+    image: hexgrad/kokoro:latest
+    # Exposes the Kokoro server on http://localhost:5600
+    ports:
+      - "5600:5600"
+    volumes:
+      - ./orchestrator/outputs:/outputs
+
