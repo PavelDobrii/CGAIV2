@@ -3,3 +3,15 @@ voices:
     description: "English voice provided by Coqui TTS"
   - id: bark
     description: "English voice provided by Suno Bark"
+  - id: coqui-female-1
+    description: "English female voice using Coqui model 1"
+  - id: coqui-female-2
+    description: "English female voice using Coqui model 2"
+  - id: bark-female
+    description: "English female voice using Suno Bark"
+  - id: coqui-male-1
+    description: "English male voice using Coqui model 1"
+  - id: coqui-male-2
+    description: "English male voice using Coqui model 2"
+  - id: bark-male
+    description: "English male voice using Suno Bark"
