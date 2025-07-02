@@ -25,3 +25,7 @@ services:
       - "5500:5500"
     volumes:
       - ./orchestrator/outputs:/outputs
+      - ./services/tts_server/voices.yml:/config/voices.yml:ro
+    environment:
+      - VOICE_CONFIG=/config/voices.yml
+

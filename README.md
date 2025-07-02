@@ -38,9 +38,12 @@ This project demonstrates a simple orchestration of a text generation model and 
 - **Method**: `POST`
 - **Example payload**:
   ```json
-  {"text": "Hello world", "speaker": "en"}
+  {"text": "Hello world", "speaker": "coqui"}
   ```
   The service returns an audio file containing the spoken text.
+  Available voices are defined in `services/tts_server/voices.yml`. This
+  repository includes voices for Coqui TTS and Suno Bark. Select the desired
+  voice by passing its name as the `speaker` value when calling the API.
 
 ### Orchestrator
 - **`/generate_story`**
@@ -81,7 +84,8 @@ Audio saved to orchestrator/outputs/my-story/story.mp3
 
 ## Directory Structure
 - `services/llm_server` – placeholder for custom TGI configuration.
-- `services/tts_server` – placeholder for custom OpenTTS configuration.
+- `services/tts_server` – OpenTTS settings including `voices.yml` defining the
+  available speakers.
 - `orchestrator/templates` – optional templates for prompts or TTS scripts.
 - `orchestrator/outputs` – location of saved outputs from both services.
 

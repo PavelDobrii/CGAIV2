@@ -1,0 +1,5 @@
+voices:
+  - id: coqui
+    description: "English voice provided by Coqui TTS"
+  - id: bark
+    description: "English voice provided by Suno Bark"
