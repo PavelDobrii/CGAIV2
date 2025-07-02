@@ -11,15 +11,21 @@ from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
     from fastapi import FastAPI, HTTPException, Header, Depends
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     FastAPI = None
     HTTPException = Exception
     Header = lambda *a, **k: None  # type: ignore[misc]
     Depends = lambda x: None  # type: ignore[misc]
+    FileResponse = None
+    StaticFiles = None
 
-class BaseModel:  # pragma: no cover - minimal stub
-    pass
+    class BaseModel:  # pragma: no cover - minimal stub
+        def __init__(self, **data: object) -> None:
+            for k, v in data.items():
+                setattr(self, k, v)
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 OUTPUTS_DIR = Path(__file__).resolve().parent / "outputs"

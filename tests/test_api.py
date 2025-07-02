@@ -79,16 +79,51 @@ def post(url, json=None):
 
     # create stub fastapi and pydantic modules
     fastapi_mod = types.ModuleType("fastapi")
+
     class FastAPI:
         def __init__(self):
             self.endpoint = None
+
         def post(self, path):
             def decorator(fn):
                 self.endpoint = fn
                 return fn
             return decorator
+
+        def get(self, path):
+            def decorator(fn):
+                return fn
+            return decorator
+
+        def mount(self, *args, **kwargs):
+            pass
+
+    def Header(*args, **kwargs):
+        return None
+
+    def Depends(dep):
+        return None
+
+    class StaticFiles:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    def FileResponse(*args, **kwargs):
+        return None
+
     fastapi_mod.FastAPI = FastAPI
     fastapi_mod.HTTPException = Exception
+    fastapi_mod.Header = Header
+    fastapi_mod.Depends = Depends
+    fastapi_mod.StaticFiles = StaticFiles
+    fastapi_mod.FileResponse = FileResponse
+
+    responses_mod = types.ModuleType("fastapi.responses")
+    responses_mod.FileResponse = FileResponse
+    staticfiles_mod = types.ModuleType("fastapi.staticfiles")
+    staticfiles_mod.StaticFiles = StaticFiles
+    fastapi_mod.responses = responses_mod
+    fastapi_mod.staticfiles = staticfiles_mod
 
     pyd_mod = types.ModuleType("pydantic")
     class BaseModel:
@@ -99,6 +134,8 @@ def post(url, json=None):
 
     sys.modules.pop("requests", None)
     sys.modules["fastapi"] = fastapi_mod
+    sys.modules["fastapi.responses"] = responses_mod
+    sys.modules["fastapi.staticfiles"] = staticfiles_mod
     sys.modules["pydantic"] = pyd_mod
 
     repo_root = Path(__file__).resolve().parents[1]
