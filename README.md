@@ -4,12 +4,14 @@ This project demonstrates a simple orchestration of a text generation model and 
 
 ## Setup
 1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/).
-2. Clone this repository:
+2. Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) so Docker can access your GPU.
+   This is required for running the LLM container with GPU acceleration.
+3. Clone this repository:
    ```bash
    git clone <repo-url>
    cd CGAIV2
    ```
-3. Start the services:
+4. Start the services:
    ```bash
    docker compose up -d
    ```
@@ -39,8 +41,42 @@ This project demonstrates a simple orchestration of a text generation model and 
   ```
   The service returns an audio file containing the spoken text.
 
+### Orchestrator
+- **`/generate_story`**
+  - **URL**: `http://localhost:8000/generate_story`
+  - **Method**: `POST`
+  - **Example payload**:
+    ```json
+    {"prompt": "Tell me a bedtime story about a cat"}
+    ```
+  - Returns JSON containing the generated story text.
+- **`/speak`**
+  - **URL**: `http://localhost:50021/speak`
+  - **Method**: `POST`
+  - **Example payload**:
+    ```json
+    {"text": "Once upon a time", "language": "en"}
+    ```
+  - Returns the audio bytes of the spoken text.
+- **`/story`**
+  - **URL**: `http://localhost:8000/story`
+  - **Method**: `POST`
+  - **Example payload**:
+    ```json
+    {"prompt": "A brave knight", "language": "en", "style": "epic"}
+    ```
+  - Runs the full workflow and saves the results to `orchestrator/outputs/{slug}/`.
+
 ## Example Results
 A simple workflow might send a prompt to TGI and feed the returned text into OpenTTS. The resulting audio file will appear in `orchestrator/outputs`.
+When the `/story` endpoint is used, the service responds with a slug that matches a directory under `orchestrator/outputs/{slug}/` containing `story.md` and `story.mp3`.
+
+Example console output:
+
+```
+Markdown saved to orchestrator/outputs/my-story/story.md
+Audio saved to orchestrator/outputs/my-story/story.mp3
+```
 
 ## Directory Structure
 - `services/llm_server` – placeholder for custom TGI configuration.
