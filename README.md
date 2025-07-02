@@ -108,7 +108,6 @@ curl -X POST http://localhost:5500/api/tts \
 
 ### Orchestrator
 
-### Orchestrator
 - **`/story`**
   - **URL**: `http://localhost:8000/story`
   - **Method**: `POST`
