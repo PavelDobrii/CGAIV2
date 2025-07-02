@@ -70,6 +70,28 @@ Each run creates a folder under `orchestrator/outputs/{slug}/` containing
   repository includes voices for Coqui TTS and Suno Bark. Select the desired
   voice by passing its name as the `speaker` value when calling the API.
 
+#### Available Voices
+The following voice IDs are defined in `services/tts_server/voices.yml`.
+
+**Female**
+
+- `coqui` – English voice provided by Coqui TTS
+
+**Male**
+
+- `bark` – English voice provided by Suno Bark
+
+Example using the `bark` voice:
+
+```bash
+curl -X POST http://localhost:5500/api/tts \
+     -H "Content-Type: application/json" \
+     -d '{"text": "Hello from Bark", "speaker": "bark"}' \
+     --output bark.mp3
+```
+
+### Orchestrator
+
 ### Orchestrator
 - **`/story`**
   - **URL**: `http://localhost:8080/story`
