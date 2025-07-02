@@ -48,5 +48,15 @@ A simple workflow might send a prompt to TGI and feed the returned text into Ope
 - `orchestrator/templates` – optional templates for prompts or TTS scripts.
 - `orchestrator/outputs` – location of saved outputs from both services.
 
+## Testing
+Install `pytest` and run the tests from the repository root:
+
+```bash
+pip install pytest
+pytest
+```
+
+The suite spins up mocked HTTP servers to verify story and audio generation.
+
 ## License
 This project is distributed for demonstration purposes and does not include any model weights.
