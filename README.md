@@ -72,7 +72,7 @@ Each run creates a folder under `orchestrator/outputs/{slug}/` containing
 
 ### Orchestrator
 - **`/story`**
-  - **URL**: `http://localhost:8080/story`
+  - **URL**: `http://localhost:8000/story`
   - **Method**: `POST`
   - **Example payload**:
     ```json
