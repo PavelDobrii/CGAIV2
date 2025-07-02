@@ -23,6 +23,31 @@ This project demonstrates a simple orchestration of a text generation model and 
 - **Stop services**: `docker compose down`
 - Generated results are written to `orchestrator/outputs` on your machine. You can mount a different host directory by editing `docker-compose.yml`.
 
+## Local Orchestrator
+You can run the orchestration layer directly without Docker. The project
+exposes both a FastAPI app and a simple command line interface.
+
+### FastAPI
+Start the API using Uvicorn:
+
+```bash
+uvicorn orchestrator.main:app
+```
+
+The server listens on `http://127.0.0.1:8000` by default. Use the `/story`
+endpoint described below to generate stories.
+
+### CLI
+The same functionality is available from the command line. Provide the prompt,
+language and style as positional arguments:
+
+```bash
+python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500
+```
+
+Each run creates a folder under `orchestrator/outputs/{slug}/` containing
+`story.md` and `story.mp3`.
+
 ## API Endpoints
 ### HuggingFace TGI (LLM server)
 - **URL**: `http://localhost:8080/generate`
