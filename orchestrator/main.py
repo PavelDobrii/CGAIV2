@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 import requests
-from .sources import fetch_wikipedia_extract
+from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
     from fastapi import FastAPI, HTTPException
@@ -41,8 +41,12 @@ def run_story(
 ):
     template = load_template()
     if location:
-        info = fetch_wikipedia_extract(location)
-        prompt = f"{prompt}\n\n{info}"
+        wiki = fetch_wikipedia_extract(location)
+        voyage = fetch_wikivoyage_extract(location)
+        info_parts = [wiki, voyage]
+        info = "\n\n".join(p for p in info_parts if p)
+        prompt = f"{prompt}\n\n{info}" if info else prompt
+
     formatted_prompt = template.format(prompt=prompt, language=language, style=style)
 
     llm_response = requests.post(

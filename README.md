@@ -1,7 +1,6 @@
 # CGAIV2
 
-This project demonstrates a simple orchestration of a text generation model and text-to-speech service. The provided `docker-compose.yml` launches two containers: HuggingFace TGI for language generation and OpenTTS for speech synthesis. Outputs are stored under `orchestrator/outputs` so that generated text or audio files persist on the host. The tool can optionally fetch background information about a location from Wikipedia before generating text.
-
+This project demonstrates a simple orchestration of a text generation model and text-to-speech service. The provided `docker-compose.yml` launches two containers: HuggingFace TGI for language generation and OpenTTS for speech synthesis. Outputs are stored under `orchestrator/outputs` so that generated text or audio files persist on the host. The tool can optionally fetch background information about a location from Wikipedia and Wikivoyage before generating text.
 
 ## Setup
 1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/).
@@ -45,6 +44,8 @@ language and style as positional arguments:
 ```bash
 python -m orchestrator.main "A brave knight" en epic --llm-url http://localhost:8080 --tts-url http://localhost:5500 --tts-engine opentts --location "Paris"
 ```
+
+The `--location` option gathers background details from Wikipedia and Wikivoyage before sending the prompt to the LLM.
 
 Each run creates a folder under `orchestrator/outputs/{slug}/` containing
 `story.md` and `story.mp3`.
@@ -116,6 +117,7 @@ curl -X POST http://localhost:5500/api/tts \
     {"prompt": "A brave knight", "language": "en", "style": "epic", "location": "Paris"}
     ```
   - Runs the full workflow and saves the results to `orchestrator/outputs/{slug}/`.
+    When `location` is provided, the orchestrator fetches descriptions from Wikipedia and Wikivoyage.
 
 ## Example Results
 A simple workflow might send a prompt to TGI and feed the returned text into a TTS engine such as OpenTTS or Kokoro. The resulting audio file will appear in `orchestrator/outputs`.
