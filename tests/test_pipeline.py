@@ -75,6 +75,7 @@ def _run_pipeline(
     llm_url: str,
     tts_url: str,
     tts_engine: str = "opentts",
+    location: str | None = None,
 ) -> Path:
     requests_stub = '''\
 import json as _json
@@ -117,6 +118,15 @@ def post(url, json=None):
     try:
         main = importlib.import_module("orchestrator.main")
         importlib.reload(main)
+        final_prompt = prompt
+        if location is not None:
+            wiki = main.fetch_wikipedia_extract(location)
+            voyage = main.fetch_wikivoyage_extract(location)
+            info_parts = [wiki, voyage]
+            info = "\n\n".join(p for p in info_parts if p)
+            if info:
+                final_prompt = f"{prompt}\n\n{info}"
+
         main.run_story(
             prompt=prompt,
             language=language,
@@ -124,13 +134,14 @@ def post(url, json=None):
             llm_url=llm_url,
             tts_url=tts_url,
             tts_engine=tts_engine,
+            location=location,
             output_base_dir=tmp_path,
         )
     finally:
         sys.path.remove(str(tmp_path))
         sys.path.remove(str(repo_root))
 
-    return tmp_path / "outputs" / _slugify(prompt)
+    return tmp_path / "outputs" / _slugify(final_prompt)
 
 
 def test_pipeline(tmp_path, llm_server, tts_server):
@@ -170,3 +181,51 @@ def test_pipeline_kokoro(tmp_path, llm_server, tts_server):
     assert md.exists()
     assert mp3.exists()
     assert requests_data[0]["path"] == "/api/kokoro"
+
+
+def test_pipeline_location_context(tmp_path, tts_server, monkeypatch):
+    wiki_text = "Wiki info"
+    voyage_text = "Voyage info"
+
+    monkeypatch.setattr(
+        "orchestrator.sources.fetch_wikipedia_extract", lambda loc: wiki_text
+    )
+    monkeypatch.setattr(
+        "orchestrator.sources.fetch_wikivoyage_extract", lambda loc: voyage_text
+    )
+
+    class _EchoHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length))
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"story": data["inputs"]}).encode())
+
+        def log_message(self, *args):  # pragma: no cover
+            pass
+
+    server, thread, llm_url = _start_server(_EchoHandler)
+    tts_url, _ = tts_server
+    try:
+        out_dir = _run_pipeline(
+            tmp_path,
+            "Base prompt",
+            "English",
+            llm_url,
+            tts_url,
+            tts_engine="opentts",
+            location="Berlin",
+        )
+    finally:
+        server.shutdown()
+        thread.join()
+
+    md_text = (out_dir / "story.md").read_text(encoding="utf-8")
+    assert "Base prompt" in md_text
+    assert wiki_text in md_text
+    assert voyage_text in md_text
+    assert md_text.index("Base prompt") < md_text.index(wiki_text) < md_text.index(
+        voyage_text
+    )
