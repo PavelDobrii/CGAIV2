@@ -14,6 +14,7 @@ This project demonstrates a simple orchestration of a text generation model and 
    docker compose up -d
    ```
    Both services will be reachable on your local machine once the images are pulled and started.
+   The LLM server listens on `http://localhost:8080` and the TTS server on `http://localhost:5500`.
 
 ## Docker Usage
 - **Start services**: `docker compose up -d`
