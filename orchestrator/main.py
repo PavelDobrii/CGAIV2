@@ -2,20 +2,20 @@ import argparse
 import os
 import re
 from pathlib import Path
+from datetime import datetime, timedelta
+import secrets
 
 import requests
 from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import FileResponse
-    from fastapi.staticfiles import StaticFiles
+    from fastapi import FastAPI, HTTPException, Header, Depends
     from pydantic import BaseModel
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     FastAPI = None
     HTTPException = Exception
-    FileResponse = None
-    StaticFiles = None
+    Header = lambda *a, **k: None  # type: ignore[misc]
+    Depends = lambda x: None  # type: ignore[misc]
 
 class BaseModel:  # pragma: no cover - minimal stub
     pass
@@ -135,6 +135,32 @@ class StoryRequest(BaseModel):
     location: str | None = None
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+TOKEN_TTL = timedelta(minutes=5)
+TOKENS: dict[str, datetime] = {}
+
+
+def _generate_token() -> str:
+    token = secrets.token_hex(16)
+    TOKENS[token] = datetime.utcnow() + TOKEN_TTL
+    return token
+
+
+def verify_token(token: str) -> None:
+    expiry = TOKENS.get(token)
+    if not expiry or expiry < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+def require_token(x_token: str = Header(..., alias="X-Token")) -> str:  # pragma: no cover - simple dependency
+    verify_token(x_token)
+    return x_token
+
+
 if FastAPI is not None:
     app = FastAPI()
     app.mount("/outputs", StaticFiles(directory=OUTPUTS_DIR), name="outputs")
@@ -143,8 +169,16 @@ if FastAPI is not None:
     def read_index():
         return FileResponse(TEMPLATE_DIR / "index.html")
 
+    @app.post("/login")
+    def login(request: LoginRequest):
+        user = os.environ.get("API_USERNAME", "admin")
+        pw = os.environ.get("API_PASSWORD", "password")
+        if request.username == user and request.password == pw:
+            return {"token": _generate_token()}
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
     @app.post("/story")
-    def create_story(request: StoryRequest):
+    def create_story(request: StoryRequest, token: str = Depends(require_token)):
         llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8080")
         tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
         tts_engine = os.environ.get("TTS_ENGINE", request.tts_engine)
