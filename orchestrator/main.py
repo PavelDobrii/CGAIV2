@@ -21,8 +21,16 @@ def main():
     parser.add_argument("prompt", help="Prompt for the story")
     parser.add_argument("language", help="Language for the story")
     parser.add_argument("style", help="Story style")
-    parser.add_argument("--llm-url", default=os.environ.get("LLM_SERVER_URL", "http://localhost:8000"), help="Base URL of LLM server")
-    parser.add_argument("--tts-url", default=os.environ.get("TTS_SERVER_URL", "http://localhost:50021"), help="Base URL of TTS server")
+    parser.add_argument(
+        "--llm-url",
+        default=os.environ.get("LLM_SERVER_URL", "http://localhost:8080"),
+        help="Base URL of LLM server",
+    )
+    parser.add_argument(
+        "--tts-url",
+        default=os.environ.get("TTS_SERVER_URL", "http://localhost:5500"),
+        help="Base URL of TTS server",
+    )
     args = parser.parse_args()
 
     template = load_template()
