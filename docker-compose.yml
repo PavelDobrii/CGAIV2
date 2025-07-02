@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  llm:
+    image: huggingface/text-generation-inference:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./orchestrator/outputs:/outputs
+    environment:
+      - MODEL_ID=facebook/opt-1.3b
+
+  tts:
+    image: synesthesiam/opentts:latest
+    ports:
+      - "5500:5500"
+    volumes:
+      - ./orchestrator/outputs:/outputs
