@@ -69,7 +69,11 @@ def run_story(
     story_text = llm_response.json().get("story") or llm_response.text
 
     slug = slugify(prompt)
-    base_dir = Path(output_base_dir) if output_base_dir is not None else Path.cwd()
+    base_dir = (
+        Path(output_base_dir)
+        if output_base_dir is not None
+        else OUTPUTS_DIR.parent
+    )
     output_dir = base_dir / "outputs" / slug
     output_dir.mkdir(parents=True, exist_ok=True)
 
