@@ -6,6 +6,20 @@
 </head>
 <body>
     <h1>Story Generator</h1>
+    <form id="loginForm">
+        <label>
+            Username:
+            <input type="text" id="username" required>
+        </label>
+        <br>
+        <label>
+            Password:
+            <input type="password" id="password" required>
+        </label>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+    <br>
     <form id="storyForm">
         <label>
             Prompt:
@@ -44,6 +58,27 @@
     </div>
 
     <script>
+    let token = null;
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const resp = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            })
+        });
+        if (!resp.ok) {
+            alert('Login failed: ' + await resp.text());
+            return;
+        }
+        const data = await resp.json();
+        token = data.token;
+        alert('Logged in');
+    });
+
     document.getElementById('storyForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const payload = {
@@ -53,9 +88,13 @@
             location: document.getElementById('location').value || null,
             tts_engine: document.getElementById('tts_engine').value
         };
+        if (!token) {
+            alert('Please login first.');
+            return;
+        }
         const resp = await fetch('/story', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-Token': token },
             body: JSON.stringify(payload)
         });
         if (!resp.ok) {
@@ -63,12 +102,8 @@
             return;
         }
         const data = await resp.json();
-        const outputPrefix = '/outputs/';
-        const mdPath = data.markdown.substring(data.markdown.indexOf('outputs/'));
-        const audioPath = data.audio.substring(data.audio.indexOf('outputs/'));
-        const textResp = await fetch('/' + mdPath);
-        document.getElementById('storyText').textContent = await textResp.text();
-        document.getElementById('storyAudio').src = '/' + audioPath;
+        document.getElementById('storyText').textContent = data.text;
+        document.getElementById('storyAudio').src = 'data:audio/mp3;base64,' + data.audio_base64;
         document.getElementById('result').style.display = 'block';
     });
     </script>
