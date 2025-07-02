@@ -132,7 +132,7 @@ def test_pipeline(tmp_path, llm_server, tts_server):
         out_dir = _run_pipeline(tmp_path, f"Prompt {lang}", lang, llm_server, tts_url)
         output_dirs.append(out_dir)
 
-    assert [r["language"] for r in requests_data] == languages
+    assert [r["speaker"] for r in requests_data] == languages
 
     for dir_ in output_dirs:
         md = dir_ / "story.md"

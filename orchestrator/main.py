@@ -4,8 +4,16 @@ import re
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+
+try:
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    FastAPI = None
+    HTTPException = Exception
+
+    class BaseModel:  # pragma: no cover - minimal stub
+        pass
 
 TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "story_prompt.txt"
 
@@ -24,12 +32,14 @@ def run_story(prompt: str, language: str, style: str, llm_url: str, tts_url: str
     template = load_template()
     formatted_prompt = template.format(prompt=prompt, language=language, style=style)
 
-    llm_response = requests.post(f"{llm_url.rstrip('/')}/generate_story", json={"prompt": formatted_prompt})
+    llm_response = requests.post(
+        f"{llm_url.rstrip('/')}/generate", json={"inputs": formatted_prompt}
+    )
     llm_response.raise_for_status()
     story_text = llm_response.json().get("story") or llm_response.text
 
     slug = slugify(prompt)
-    output_dir = Path(__file__).resolve().parent / "outputs" / slug
+    output_dir = Path.cwd() / "outputs" / slug
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / "story.md"
@@ -37,7 +47,8 @@ def run_story(prompt: str, language: str, style: str, llm_url: str, tts_url: str
         f.write(story_text)
 
     tts_response = requests.post(
-        f"{tts_url.rstrip('/')}/speak", json={"text": story_text, "language": language}
+        f"{tts_url.rstrip('/')}/api/tts",
+        json={"text": story_text, "speaker": language},
     )
     tts_response.raise_for_status()
     audio_path = output_dir / "story.mp3"
@@ -81,25 +92,27 @@ class StoryRequest(BaseModel):
     style: str
 
 
-app = FastAPI()
+if FastAPI is not None:
+    app = FastAPI()
 
+    @app.post("/story")
+    def create_story(request: StoryRequest):
+        llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8080")
+        tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
+        try:
+            md_path, audio_path = run_story(
+                prompt=request.prompt,
+                language=request.language,
+                style=request.style,
+                llm_url=llm_url,
+                tts_url=tts_url,
+            )
+        except requests.RequestException as exc:
+            raise HTTPException(status_code=502, detail=str(exc))
 
-@app.post("/story")
-def create_story(request: StoryRequest):
-    llm_url = os.environ.get("LLM_SERVER_URL", "http://localhost:8080")
-    tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
-    try:
-        md_path, audio_path = run_story(
-            prompt=request.prompt,
-            language=request.language,
-            style=request.style,
-            llm_url=llm_url,
-            tts_url=tts_url,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail=str(exc))
-
-    return {"markdown": str(md_path), "audio": str(audio_path)}
+        return {"markdown": str(md_path), "audio": str(audio_path)}
+else:  # pragma: no cover - FastAPI not available
+    app = None
 
 if __name__ == "__main__":
     main()

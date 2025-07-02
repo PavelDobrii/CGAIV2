@@ -46,22 +46,6 @@ This project demonstrates a simple orchestration of a text generation model and 
   voice by passing its name as the `speaker` value when calling the API.
 
 ### Orchestrator
-- **`/generate_story`**
-  - **URL**: `http://localhost:8080/generate_story`
-  - **Method**: `POST`
-  - **Example payload**:
-    ```json
-    {"prompt": "Tell me a bedtime story about a cat"}
-    ```
-  - Returns JSON containing the generated story text.
-- **`/speak`**
-  - **URL**: `http://localhost:5500/speak`
-  - **Method**: `POST`
-  - **Example payload**:
-    ```json
-    {"text": "Once upon a time", "language": "en"}
-    ```
-  - Returns the audio bytes of the spoken text.
 - **`/story`**
   - **URL**: `http://localhost:8080/story`
   - **Method**: `POST`
