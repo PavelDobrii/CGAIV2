@@ -76,7 +76,7 @@ def _run_pipeline(
     tts_url: str,
     tts_engine: str = "opentts",
     location: str | None = None,
-) -> Path:
+) -> tuple[Path, tuple[Path, Path, str, bytes]]:
     requests_stub = '''\
 import json as _json
 from urllib import request as _request
@@ -127,7 +127,7 @@ def post(url, json=None):
             if info:
                 final_prompt = f"{prompt}\n\n{info}"
 
-        main.run_story(
+        result = main.run_story(
             prompt=prompt,
             language=language,
             style="fun",
@@ -137,37 +137,41 @@ def post(url, json=None):
             location=location,
             output_base_dir=tmp_path,
         )
+        md_path, audio_path, text, audio_bytes = result
     finally:
         sys.path.remove(str(tmp_path))
         sys.path.remove(str(repo_root))
 
-    return tmp_path / "outputs" / _slugify(final_prompt)
+    return tmp_path / "outputs" / _slugify(final_prompt), result
 
 
 def test_pipeline(tmp_path, llm_server, tts_server):
     tts_url, requests_data = tts_server
     languages = ["English", "Spanish", "French"]
-    output_dirs = []
+    outputs = []
 
     for lang in languages:
-        out_dir = _run_pipeline(tmp_path, f"Prompt {lang}", lang, llm_server, tts_url)
-        output_dirs.append(out_dir)
+        out_dir, result = _run_pipeline(tmp_path, f"Prompt {lang}", lang, llm_server, tts_url)
+        outputs.append((out_dir, result))
 
     assert [r["body"]["speaker"] for r in requests_data] == languages
     assert all(r["path"] == "/api/tts" for r in requests_data)
 
-    for dir_ in output_dirs:
+    for dir_, result in outputs:
         md = dir_ / "story.md"
         mp3 = dir_ / "story.mp3"
         assert md.exists()
         assert mp3.exists()
-        assert md.read_text(encoding="utf-8") == "This is a test story."
-        assert mp3.read_bytes() == b"TESTMP3"
+        md_path, audio_path, text, audio_bytes = result
+        assert md_path == md
+        assert audio_path == mp3
+        assert text == "This is a test story."
+        assert audio_bytes == b"TESTMP3"
 
 
 def test_pipeline_kokoro(tmp_path, llm_server, tts_server):
     tts_url, requests_data = tts_server
-    out_dir = _run_pipeline(
+    out_dir, result = _run_pipeline(
         tmp_path,
         "Prompt Kokoro",
         "Japanese",
@@ -180,6 +184,11 @@ def test_pipeline_kokoro(tmp_path, llm_server, tts_server):
     mp3 = out_dir / "story.mp3"
     assert md.exists()
     assert mp3.exists()
+    md_path, audio_path, text, audio_bytes = result
+    assert md_path == md
+    assert audio_path == mp3
+    assert text == "This is a test story."
+    assert audio_bytes == b"TESTMP3"
     assert requests_data[0]["path"] == "/api/kokoro"
 
 
@@ -209,7 +218,7 @@ def test_pipeline_location_context(tmp_path, tts_server, monkeypatch):
     server, thread, llm_url = _start_server(_EchoHandler)
     tts_url, _ = tts_server
     try:
-        out_dir = _run_pipeline(
+        out_dir, result = _run_pipeline(
             tmp_path,
             "Base prompt",
             "English",
@@ -223,6 +232,9 @@ def test_pipeline_location_context(tmp_path, tts_server, monkeypatch):
         thread.join()
 
     md_text = (out_dir / "story.md").read_text(encoding="utf-8")
+    md_path, audio_path, text, audio_bytes = result
+    assert audio_bytes == b"TESTMP3"
+    assert text == md_text
     assert "Base prompt" in md_text
     assert wiki_text in md_text
     assert voyage_text in md_text

@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 import requests
+import base64
 from .sources import fetch_wikipedia_extract, fetch_wikivoyage_extract
 
 try:
@@ -78,7 +79,7 @@ def run_story(
     with open(audio_path, "wb") as f:
         f.write(tts_response.content)
 
-    return md_path, audio_path
+    return md_path, audio_path, story_text, tts_response.content
 
 def main():
     parser = argparse.ArgumentParser(description="Generate a story and TTS audio")
@@ -107,7 +108,7 @@ def main():
     )
     args = parser.parse_args()
 
-    md_path, audio_path = run_story(
+    md_path, audio_path, _, _ = run_story(
         prompt=args.prompt,
         language=args.language,
         style=args.style,
@@ -138,7 +139,7 @@ if FastAPI is not None:
         tts_url = os.environ.get("TTS_SERVER_URL", "http://localhost:5500")
         tts_engine = os.environ.get("TTS_ENGINE", request.tts_engine)
         try:
-            md_path, audio_path = run_story(
+            md_path, audio_path, story_text, audio_bytes = run_story(
                 prompt=request.prompt,
                 language=request.language,
                 style=request.style,
@@ -149,8 +150,13 @@ if FastAPI is not None:
             )
         except requests.RequestException as exc:
             raise HTTPException(status_code=502, detail=str(exc))
-
-        return {"markdown": str(md_path), "audio": str(audio_path)}
+        encoded = base64.b64encode(audio_bytes).decode()
+        return {
+            "markdown": str(md_path),
+            "audio": str(audio_path),
+            "text": story_text,
+            "audio_base64": encoded,
+        }
 else:  # pragma: no cover - FastAPI not available
     app = None
 
