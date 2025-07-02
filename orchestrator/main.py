@@ -46,6 +46,7 @@ def run_story(
         info_parts = [wiki, voyage]
         info = "\n\n".join(p for p in info_parts if p)
         prompt = f"{prompt}\n\n{info}" if info else prompt
+        
     formatted_prompt = template.format(prompt=prompt, language=language, style=style)
 
     llm_response = requests.post(

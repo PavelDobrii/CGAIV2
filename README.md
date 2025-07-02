@@ -15,8 +15,8 @@ This project demonstrates a simple orchestration of a text generation model and 
    ```bash
    docker compose up -d
    ```
-   Both services will be reachable on your local machine once the images are pulled and started.
-   The LLM server listens on `http://localhost:8080` and the TTS server on `http://localhost:5500`.
+   All three services will be reachable on your local machine once the images are pulled and started.
+   The LLM server listens on `http://localhost:8080`, the OpenTTS server on `http://localhost:5500`, and the Kokoro server on `http://localhost:5600`.
 
 ## Docker Usage
 - **Start services**: `docker compose up -d`
@@ -50,6 +50,7 @@ The `--location` option gathers background details from Wikipedia and Wikivoyage
 Each run creates a folder under `orchestrator/outputs/{slug}/` containing
 `story.md` and `story.mp3`.
 
+To use the Kokoro container instead of OpenTTS, pass `--tts-engine kokoro` and set `--tts-url http://localhost:5600` to match its address (or set `tts_engine: "kokoro"` when calling the API).
 ## API Endpoints
 ### HuggingFace TGI (LLM server)
 - **URL**: `http://localhost:8080/generate`
@@ -74,9 +75,16 @@ Each run creates a folder under `orchestrator/outputs/{slug}/` containing
   as `coqui-female-1`, `coqui-female-2`, `bark-female`, `coqui-male-1`,
   `coqui-male-2`, and `bark-male`. Choose one of these IDs by passing it as the
   `speaker` value when calling the API. The orchestrator also supports a
-  separate Kokoro engine by passing `--tts-engine kokoro` (or `tts_engine` in the
-  API), which targets the `/api/kokoro` endpoint.
+  separate Kokoro engine by passing `--tts-engine kokoro` (or `tts_engine: "kokoro"` in the API), which targets the `/api/kokoro` endpoint. When running this container, set `--tts-url http://localhost:5600` to match its address.
 
+### Kokoro
+- **URL**: `http://localhost:5600/api/kokoro`
+- **Method**: `POST`
+- **Example payload**:
+  ```json
+  {"text": "こんにちは"}
+  ```
+  Returns a spoken Japanese audio file.
 #### Available Voices
 The following voice IDs are defined in `services/tts_server/voices.yml`.
 
@@ -112,7 +120,7 @@ curl -X POST http://localhost:5500/api/tts \
     When `location` is provided, the orchestrator fetches descriptions from Wikipedia and Wikivoyage.
 
 ## Example Results
-A simple workflow might send a prompt to TGI and feed the returned text into OpenTTS. The resulting audio file will appear in `orchestrator/outputs`.
+A simple workflow might send a prompt to TGI and feed the returned text into a TTS engine such as OpenTTS or Kokoro. The resulting audio file will appear in `orchestrator/outputs`.
 When the `/story` endpoint is used, the service responds with a slug that matches a directory under `orchestrator/outputs/{slug}/` containing `story.md` and `story.mp3`.
 
 Example console output:
@@ -127,7 +135,7 @@ Audio saved to orchestrator/outputs/my-story/story.mp3
 - `services/tts_server` – OpenTTS settings including `voices.yml` defining the
   available speakers.
 - `orchestrator/templates` – optional templates for prompts or TTS scripts.
-- `orchestrator/outputs` – location of saved outputs from both services.
+- `orchestrator/outputs` – location of saved outputs from all services.
 
 ## Testing
 Install `pytest` and run the tests from the repository root:
