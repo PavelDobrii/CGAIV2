@@ -16,6 +16,18 @@ This project demonstrates a simple orchestration of a text generation model and 
    docker compose up -d
    ```
    All three services will be reachable on your local machine once the images are pulled and started.
+   The LLM container image is hosted on GitHub Container Registry as
+   `ghcr.io/huggingface/text-generation-inference:latest`, so Docker Hub logins
+   are not required. The Kokoro container image is also hosted on GitHub
+   Container Registry as `ghcr.io/hexgrad/kokoro:latest`.
+   If you see a `denied` error when pulling the Kokoro image, authenticate to
+   GitHub Container Registry with:
+
+   ```bash
+   echo <TOKEN> | docker login ghcr.io -u <github-username> --password-stdin
+   ```
+   Replace `<TOKEN>` with a GitHub personal access token that has `read:packages`
+   scope.
    The LLM server listens on `http://localhost:8080`, the OpenTTS server on `http://localhost:5500`, and the Kokoro server on `http://localhost:5600`.
 
 ## Docker Usage

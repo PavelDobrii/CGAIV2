@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   llm:
-    image: huggingface/text-generation-inference:latest
+    # Use the official TGI image from GitHub Container Registry
+    image: ghcr.io/huggingface/text-generation-inference:latest
     # Exposes the LLM server on http://localhost:8080
     ports:
       - "8080:80"
@@ -30,7 +29,7 @@ services:
       - VOICE_CONFIG=/config/voices.yml
 
   kokoro:
-    image: hexgrad/kokoro:latest
+    image: ghcr.io/hexgrad/kokoro:latest
     # Exposes the Kokoro server on http://localhost:5600
     ports:
       - "5600:5600"
